@@ -144,6 +144,7 @@ dpo_config = DPOConfig(
     seed=42,
     loss_type="sigmoid",         # DPO standard (alternatives: ipo, hinge, kto)
     report_to="none",
+    dataset_num_proc=1,
 )
 
 print(f"DPOConfig: beta={dpo_config.beta}  lr={dpo_config.learning_rate}  loss_type={dpo_config.loss_type}")
@@ -163,6 +164,8 @@ print(f"Columns: {pref_ds.column_names}")
 
 # %%
 from trl import DPOTrainer
+from unsloth import PatchDPOTrainer
+PatchDPOTrainer()
 
 trainer = DPOTrainer(
     model=model,
@@ -173,6 +176,12 @@ trainer = DPOTrainer(
 )
 
 # %%
+# T4 workaround for xformers BMGHK issue
+import unsloth.models.llama
+unsloth.models.llama.HAS_XFORMERS = False
+import unsloth.models.qwen2
+unsloth.models.qwen2.HAS_XFORMERS = False
+
 train_result = trainer.train()
 print(f"\nFinal DPO loss: {train_result.training_loss:.4f}")
 
